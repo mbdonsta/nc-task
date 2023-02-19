@@ -1,0 +1,3 @@
+[submodule "events-laravel"]
+    path = src
+    url = git@github.com:mbdonsta/events-laravel.git

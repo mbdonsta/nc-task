@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+    nginx:
+        build:
+            context: ./docker
+            dockerfile: nginx.dockerfile
+        ports:
+            - 80:80
+        volumes:
+            - ./src:/var/www/html
+        depends_on:
+            - mysql
+            - php    
+    mysql:
+        image: mysql:8.0
+        ports:
+            - 3306:3306
+        environment:
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: secret
+        volumes:
+            - ./mysql:/var/lib/mysql
+    php: 
+        build:
+            context: ./docker
+            dockerfile: php.dockerfile
+        volumes:
+            - ./src:/var/www/html
+    artisan:
+        build:
+            context: ./docker
+            dockerfile: php.dockerfile
+        volumes:
+            - ./src:/var/www/html
+        working_dir: /var/www/html
+        depends_on:
+            - mysql
+        entrypoint: [ "php", "/var/www/html/artisan" ]
+    mailhog:
+        image: mailhog/mailhog
+        logging:
+            driver: 'none'  # disable saving logs
+        ports:
+            - 1025:1025
+            - 8025:8025
+    phpmyadmin:
+        image: phpmyadmin
+        restart: always
+        ports:
+            - 8080:80
+        environment:
+            - PMA_HOST=mysql
+            - PMA_PORT=3306
+            - PMA_ARBITRARY=1         
+    npm:
+        image: node:current-alpine
+        volumes:
+            - ./src:/var/www/html
+        entrypoint: ["npm"]
+        working_dir: /var/www/html
+    composer:
+        build:
+            context: ./docker
+            dockerfile: composer.dockerfile
+        volumes:
+            - ./src:/var/www/html
+        working_dir: /var/www/html
